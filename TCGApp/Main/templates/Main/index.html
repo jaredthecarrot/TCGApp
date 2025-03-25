@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Trading Card Scanner</title>
+</head>
+<body>
+    <h1>Upload an Image for OCR Detection</h1>
+
+    <form action="{% url 'detect_text' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="image" required>
+        <button type="submit">Upload and Detect</button>
+    </form>
+
+    {% if text_results %}
+    <h2>Detected Text:</h2>
+    <ul>
+        {% for text in text_results %}
+        <li>{{ text }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</body>
+</html>
