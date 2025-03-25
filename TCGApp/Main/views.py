@@ -2,6 +2,9 @@ from django.shortcuts import render
 
 # Create your views here.
 
+def homepage(request):
+    return render(request, 'Main/homepage.html', {})
+
 def detect_text(path):
     """Detects text in the file."""
     from google.cloud import vision

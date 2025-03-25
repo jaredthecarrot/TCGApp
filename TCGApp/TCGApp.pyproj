@@ -46,6 +46,8 @@
     <Compile Include="TCGApp\wsgi.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Main\templates\Main\homepage.css" />
+    <Content Include="Main\templates\Main\homepage.html" />
     <Content Include="Main\templates\Main\index.html" />
     <Content Include="Main\testing_images\this_is_perona.jpg" />
     <Content Include="requirements.txt" />
