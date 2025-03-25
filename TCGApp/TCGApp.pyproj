@@ -4,6 +4,7 @@
     <Name>TCGApp</Name>
     <RootNamespace>TCGApp</RootNamespace>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+    <TestFramework>Pytest</TestFramework>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -48,7 +49,6 @@
     <Content Include="Main\templates\Main\index.html" />
     <Content Include="Main\testing_images\this_is_perona.jpg" />
     <Content Include="requirements.txt" />
-    <Content Include=".env" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Main\" />
