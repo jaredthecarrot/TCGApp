@@ -25,4 +25,5 @@ urlpatterns = [
     # Uncomment the next line to enable the admin:
     path('admin/', admin.site.urls),
     path('', include('Main.urls')),
+    path('', include('django.contrib.auth.urls')),
 ]

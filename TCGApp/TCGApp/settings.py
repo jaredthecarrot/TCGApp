@@ -37,8 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'Main',
+    'Main.apps.MainConfig',
+    'crispy_forms',
+    'crispy_boostrap5',
 ]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Middleware framework
 # https://docs.djangoproject.com/en/2.1/topics/http/middleware/

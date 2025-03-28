@@ -33,6 +33,7 @@
   <ItemGroup>
     <Compile Include="Main\admin.py" />
     <Compile Include="Main\apps.py" />
+    <Compile Include="Main\forms.py" />
     <Compile Include="Main\migrations\__init__.py" />
     <Compile Include="Main\models.py" />
     <Compile Include="Main\tests.py" />
@@ -46,15 +47,18 @@
     <Compile Include="TCGApp\wsgi.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Main\templates\Main\homepage.css" />
-    <Content Include="Main\templates\Main\homepage.html" />
+    <Content Include="Main\templates\Main\base.html" />
+    <Content Include="Main\templates\Main\home.html" />
     <Content Include="Main\templates\Main\index.html" />
+    <Content Include="Main\templates\registration\login.html" />
+    <Content Include="Main\templates\registration\sign_up.html" />
     <Content Include="Main\testing_images\this_is_perona.jpg" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Main\" />
     <Folder Include="Main\migrations\" />
+    <Folder Include="Main\templates\registration\" />
     <Folder Include="Main\testing_images\" />
     <Folder Include="Main\templates\" />
     <Folder Include="Main\templates\Main\" />
