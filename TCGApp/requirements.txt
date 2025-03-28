@@ -1,3 +1,5 @@
 django>=3.2.14
 python-dotenv
 requests
+django-crispy-forms
+crispy-bootstrap5
