@@ -5,8 +5,8 @@ from django.db import models
 class Cards(models.Model):
     productId = models.CharField(("productId"), max_length=256)
     cleanName = models.CharField(("cleanname"), max_length=256)
-    imageUrl = models.CharField(("imageUrl"), max_length=256)
-    url = models.CharField(("url"), max_length=256)
+    imageUrl = models.URLField(("imageUrl"), max_length=256)
+    url = models.URLField(("url"), max_length=256)
     lowPrice = models.FloatField(("lowPrice"), )
     midPrice = models.FloatField(("midPrice"), )
     highPrice = models.FloatField(("highPrice"), )
@@ -14,3 +14,6 @@ class Cards(models.Model):
     subTypeName = models.CharField(("subTypeName"), max_length=256)
     extNumber = models.CharField(("extNumber"), max_length=256)
     #extDescription = models.CharField(("extDescription"), max_length=1024)
+
+    def __str__(self):
+        return 'Name: ' + self.cleanName + ' - extNumber: ' + self.extNumber

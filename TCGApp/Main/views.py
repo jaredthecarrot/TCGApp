@@ -3,11 +3,13 @@ from .forms import RegisterForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User, Group
+from .models import Cards
 # Create your views here.
 
 @login_required(login_url='/login')
 def home(request):
-    return render(request, 'Main/home.html')
+    all_cards = Cards.objects.all()
+    return render(request, 'Main/home.html', {'all': all_cards})
 
 
 def sign_up(request):

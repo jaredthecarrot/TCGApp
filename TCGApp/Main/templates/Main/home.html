@@ -2,4 +2,14 @@
 {% block title %}Home Page{% endblock %}
 {% block content %}
 <h1>Home Page</h1>
+<p>Welcome to the home page of the TCG App.</p>
+{% for item in all %}
+<p>
+    <img src="{{ item.imageUrl }}" alt="Card Image" width="200" />
+</p>
+<p>
+    <a href="{{ item.url }}" target="_blank"> View Card Details</a>
+</p>
+<hr />
+{% endfor %}
 {% endblock %}
