@@ -1,3 +1,4 @@
+
 {% extends 'Main/base.html' %}
 
 {% block title %}Home Page{% endblock %}
@@ -11,5 +12,22 @@
     <li><a href="{% url 'webcam_capture' %}">📸 Scan a Card with Webcam</a></li>
     <li><a href="{% url 'logout' %}">🚪 Logout</a></li>
 </ul>
+
+<hr>
+
+<h2>Available Cards:</h2>
+
+{% for item in all %}
+    <div style="margin-bottom: 20px;">
+        <img src="{{ item.imageUrl }}" alt="Card Image" width="200" />
+        <p>
+            <a href="{{ item.url }}" target="_blank">View Card Details</a>
+        </p>
+        <hr />
+    </div>
+{% empty %}
+    <p>No cards found.</p>
+{% endfor %}
+
 {% endblock %}
 

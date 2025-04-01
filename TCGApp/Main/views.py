@@ -14,11 +14,13 @@ import os
 
 
 
+from .models import Cards
 # Create your views here.
 
 @login_required(login_url='/login')
 def home(request):
-    return render(request, 'Main/home.html')
+    all_cards = Cards.objects.all()
+    return render(request, 'Main/home.html', {'all': all_cards})
 
 
 def sign_up(request):
