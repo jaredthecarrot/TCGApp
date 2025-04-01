@@ -2,7 +2,18 @@ from django.shortcuts import render, redirect
 from .forms import RegisterForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group 
+
+from django.http import HttpResponse
+
+from google.cloud import vision
+
+import cv2
+import base64
+import os
+
+
+
 # Create your views here.
 
 @login_required(login_url='/login')
@@ -51,3 +62,35 @@ def detect_text(path):
             "{}\nFor more info on error messages, check: "
             "https://cloud.google.com/apis/design/errors".format(response.error.message)
         )
+    
+
+
+    # ---------------------------------------
+# Webcam Capture + Google Cloud OCR
+# ---------------------------------------
+@login_required(login_url='/login')
+def webcam_capture(request):
+    if request.method == "POST":
+        cap = cv2.VideoCapture(0)
+        ret, frame = cap.read()
+        cap.release()
+        cv2.destroyAllWindows()
+
+        if not ret:
+            return HttpResponse("Failed to capture image")
+
+        # Encode the captured frame to JPEG buffer, then base64 encode it
+        _, buffer = cv2.imencode('.jpg', frame)
+        encoded_image = base64.b64encode(buffer).decode()
+
+        # Google Vision OCR call
+        client = vision.ImageAnnotatorClient()
+        image = vision.Image(content=base64.b64decode(encoded_image))
+        response = client.text_detection(image=image)
+        texts = response.text_annotations
+
+        detected_text = texts[0].description if texts else "No text detected"
+
+        return render(request, 'Main/webcam_result.html', {'text': detected_text})
+
+    return render(request, 'Main/webcam.html')

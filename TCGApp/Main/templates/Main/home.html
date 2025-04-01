@@ -1,5 +1,15 @@
 {% extends 'Main/base.html' %}
+
 {% block title %}Home Page{% endblock %}
+
 {% block content %}
 <h1>Home Page</h1>
+
+<p>Welcome to your dashboard!</p>
+
+<ul>
+    <li><a href="{% url 'webcam_capture' %}">📸 Scan a Card with Webcam</a></li>
+    <li><a href="{% url 'logout' %}">🚪 Logout</a></li>
+</ul>
 {% endblock %}
+
