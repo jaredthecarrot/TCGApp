@@ -1,4 +1,12 @@
-<!-- webcam_result.html -->
-<h2>Detected Text:</h2>
-<p>{{ text|linebreaks }}</p>
-<a href="{% url 'webcam_capture' %}">Try Again</a>
+{% extends 'Main/base.html' %}
+{% block content %}
+<h2>Webcam Result</h2>
+
+<p><strong>Saved Image:</strong></p>
+<img src="{{ image_url }}" alt="Saved Image" width="300" />
+
+<p><strong>Detected Text:</strong> {{ text_result }}</p>
+
+<a href="{% url 'webcam_capture' %}">📸 Scan Again</a>
+{% endblock %}
+
