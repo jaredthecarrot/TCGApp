@@ -1,15 +1,12 @@
-{% extends 'Main/base.html' %}
+﻿{% extends 'Main/base.html' %}
+
 {% block title %}Home Page{% endblock %}
+
 {% block content %}
-<h1>Home Page</h1>
-<p>Welcome to the home page of the TCG App.</p>
-{% for item in all %}
-<p>
-    <img src="{{ item.imageUrl }}" alt="Card Image" width="200" />
-</p>
-<p>
-    <a href="{{ item.url }}" target="_blank"> View Card Details</a>
-</p>
-<hr />
-{% endfor %}
+<h1>Welcome to the TCGApp Website</h1>
+<p>Are you tired of constantly having to look up cards, scrolling through TCGPlayer for your exact card?</p>
+<p>Wouldn't you rather take some quick pictures, and we do all the work for you?</p>
+<p>With this website, that's possible! Just snap those photos, and we'll do all the legwork for you!</p>
+<p>You can even store your scanned cards into your own personal repository!</p>
+<p>Or, view the entire One Piece <a href="{% url 'catalog' %}">catalog</a> with links to TCGPlayer and access to valuable trading card information.</p>
 {% endblock %}

@@ -3,14 +3,21 @@ from .forms import RegisterForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User, Group
-from .models import Cards
+from django.http import JsonResponse
+from .models import Card
+import base64
+from django.core.files.base import ContentFile
+from .models import UploadedImage
 # Create your views here.
 
 @login_required(login_url='/login')
 def home(request):
-    all_cards = Cards.objects.all()
-    return render(request, 'Main/home.html', {'all': all_cards})
+    return render(request, 'Main/home.html')
 
+@login_required(login_url='/login')
+def catalog(request):
+    cards = Card.objects.all()
+    return render(request, 'Main/catalog.html', {'cards': cards})
 
 def sign_up(request):
     if request.method == 'POST':
@@ -23,6 +30,22 @@ def sign_up(request):
         form = RegisterForm()
 
     return render(request, 'registration/sign_up.html', {"form": form})
+
+def image_capture(request):
+    return render(request, 'Main/image_capture.html')
+
+def upload_image(request):
+    if request.method == "POST":
+        import json
+        data = json.loads(request.body)
+        image_data = data.get("image")
+        if image_data:
+            format, imgstr = image_data.split(';base64,')
+            ext = format.split('/')[-1]
+            image_file = ContentFile(base64.b64decode(imgstr), name=f"capture.{ext}")
+            uploaded_image = UploadedImage.objects.create(image=image_file)
+            return JsonResponse({"message": "Image uploaded successfully", "image_url": uploaded_image.image.url})
+    return JsonResponse({"error": "Invalid request"}, status=400)  # Return proper error response
 
 def detect_text(path):
     """Detects text in the file."""

@@ -3,3 +3,5 @@ python-dotenv
 requests
 django-crispy-forms
 crispy-bootstrap5
+pillow
+opencv-python

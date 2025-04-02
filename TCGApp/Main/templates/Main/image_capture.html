@@ -1,0 +1,76 @@
+{% extends 'Main/base.html' %}
+{% block title %}Webcam Capture{% endblock %}
+{% block content %}
+<div class="container text-center mt-4">
+    <h1>Capture Your Card</h1>
+    <p>Use your webcam to take a picture of your card.</p>
+
+    <video id="webcam" autoplay playsinline class="border"></video>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <br>
+    <button id="captureBtn" class="btn btn-success mt-2">Capture Image</button>
+    <button id="uploadBtn" class="btn btn-primary mt-2" style="display: none;">Upload</button>
+
+    <div id="previewContainer" style="display: none;">
+        <h3>Preview</h3>
+        <img id="previewImage" class="img-fluid border mt-2" />
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById("webcam");
+    const canvas = document.getElementById("canvas");
+    const context = canvas.getContext("2d");
+    const captureBtn = document.getElementById("captureBtn");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const previewContainer = document.getElementById("previewContainer");
+    const previewImage = document.getElementById("previewImage");
+
+    // Start webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => video.srcObject = stream)
+        .catch(err => console.error("Error accessing webcam:", err));
+
+    // Capture Image
+    captureBtn.addEventListener("click", () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        previewContainer.style.display = "block";
+        previewImage.src = canvas.toDataURL("image/png");
+        uploadBtn.style.display = "inline-block";
+    });
+
+    // Retrieve CSRF token from cookies
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            document.cookie.split(";").forEach(cookie => {
+                let [name, value] = cookie.trim().split("=");
+                if (name === "csrftoken") {
+                    cookieValue = decodeURIComponent(value);
+                }
+            });
+        }
+        return cookieValue;
+    }
+
+    // Upload Image
+    uploadBtn.addEventListener("click", () => {
+        const imageData = canvas.toDataURL("image/png");
+
+        fetch("{% url 'upload_image' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCSRFToken(),
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ image: imageData }),
+        })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error("Upload error:", error));
+    });
+</script>
+{% endblock %}

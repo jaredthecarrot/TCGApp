@@ -1,8 +1,7 @@
 from django.db import models
-
 # Create your models here.
 
-class Cards(models.Model):
+class Card(models.Model):
     productId = models.CharField(("productId"), max_length=256)
     cleanName = models.CharField(("cleanname"), max_length=256)
     imageUrl = models.URLField(("imageUrl"), max_length=256)
@@ -17,3 +16,7 @@ class Cards(models.Model):
 
     def __str__(self):
         return 'Name: ' + self.cleanName + ' - extNumber: ' + self.extNumber
+
+class UploadedImage(models.Model):
+    image = models.ImageField(upload_to="uploads/")
+    created_at = models.DateTimeField(auto_now_add=True)

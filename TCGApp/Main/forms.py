@@ -1,5 +1,5 @@
 from django import forms
-from .models import Cards
+from .models import Card
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
@@ -12,5 +12,5 @@ class RegisterForm(UserCreationForm):
 
 class CardForm(forms.ModelForm):
     class Meta:
-        model = Cards
+        model = Card
         fields = "__all__"

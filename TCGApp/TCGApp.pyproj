@@ -48,8 +48,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Main\templates\Main\base.html" />
+    <Content Include="Main\templates\Main\catalog.html" />
     <Content Include="Main\templates\Main\home.html" />
-    <Content Include="Main\templates\Main\index.html" />
+    <Content Include="Main\templates\Main\image_capture.html" />
     <Content Include="Main\templates\registration\login.html" />
     <Content Include="Main\templates\registration\sign_up.html" />
     <Content Include="requirements.txt" />
