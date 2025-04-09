@@ -8,6 +8,13 @@ from .models import Card
 import base64
 from django.core.files.base import ContentFile
 from .models import UploadedImage
+
+from django.shortcuts import get_object_or_404, redirect
+
+from google.cloud import vision
+
+import pandas as pd
+
 # Create your views here.
 
 @login_required(login_url='/login')
@@ -18,6 +25,18 @@ def home(request):
 def catalog(request):
     cards = Card.objects.all()
     return render(request, 'Main/catalog.html', {'cards': cards})
+
+@login_required(login_url='/login')
+def scanned_cards(request):
+    images = UploadedImage.objects.all()  # Fetch all uploaded images from the database
+    return render(request, 'Main/scanned_cards.html', {'images': images})
+
+@login_required(login_url='/login')
+def delete_image(request, image_id):
+    image = get_object_or_404(UploadedImage, id=image_id)  # Get the image object by ID
+    image.delete()  # Delete the image from the database
+    return redirect('scanned_cards')  # Redirect back to the scanned cards page
+
 
 def sign_up(request):
     if request.method == 'POST':
