@@ -5,72 +5,212 @@
     <h1>Capture Your Card</h1>
     <p>Use your webcam to take a picture of your card.</p>
 
-    <video id="webcam" autoplay playsinline class="border"></video>
-    <canvas id="canvas" style="display: none;"></canvas>
-    <br>
-    <button id="captureBtn" class="btn btn-success mt-2">Capture Image</button>
-    <button id="uploadBtn" class="btn btn-primary mt-2" style="display: none;">Upload</button>
+    <style>
+        /* General container styling */
+        .container {
+            font-family: Arial, sans-serif; /* Use a clean, modern font */
+            color: #e0e0e0; /* Brighter gray for better readability in dark mode */
+        }
 
-    <div id="previewContainer" style="display: none;">
-        <h3>Preview</h3>
-        <img id="previewImage" class="img-fluid border mt-2" />
+        /* Title styling */
+        h1 {
+            font-size: 2.5rem; /* Larger font size for the title */
+            font-weight: bold; /* Make the title bold */
+            color: #3498db; /* Blue color for the title */
+            margin-bottom: 20px; /* Add spacing below the title */
+        }
+
+        /* Paragraph styling */
+        p {
+            font-size: 1.2rem; /* Slightly larger font size for paragraphs */
+            color: #3498db; /* Blue color for the paragraph text */
+            margin-bottom: 15px; /* Add spacing below paragraphs */
+        }
+
+        /* Results section styling */
+        #results {
+            font-size: 1.3rem; /* Larger font size for results */
+            color: #2c3e50; /* Dark blue color for results text */
+            background-color: #f9f9f9; /* Light gray background for results */
+            padding: 15px; /* Add padding inside the results box */
+            border-radius: 8px; /* Rounded corners for the results box */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        }
+
+        /* Center the camera and buttons */
+        .camera-container {
+            display: flex;
+            flex-direction: column; /* Stack elements vertically */
+            align-items: center; /* Center-align elements horizontally */
+            margin-top: 20px; /* Add spacing above the camera container */
+        }
+
+        /* Style the button container */
+        .button-container {
+            margin-top: 15px; /* Add spacing between the camera and buttons */
+        }
+
+        /* Buttons styling */
+        button {
+            font-size: 1.1rem; /* Slightly larger font size for buttons */
+            padding: 10px 20px; /* Add padding for a larger button */
+            border: none; /* Remove default border */
+            border-radius: 5px; /* Rounded corners for buttons */
+            cursor: pointer; /* Pointer cursor on hover */
+            margin: 5px; /* Add spacing between buttons */
+        }
+
+        /* Capture button styling */
+        #capture {
+            background-color: #2ecc71; /* Green background */
+            color: white; /* White text */
+        }
+
+        #capture:hover {
+            background-color: #27ae60; /* Darker green on hover */
+        }
+
+        /* Retry button styling */
+        #retry {
+            background-color: #e67e22; /* Orange background */
+            color: white; /* White text */
+        }
+
+        #retry:hover {
+            background-color: #d35400; /* Darker orange on hover */
+        }
+
+        /* Upload button styling */
+        #upload {
+            background-color: #3498db; /* Blue background */
+            color: white; /* White text */
+        }
+
+        #upload:hover {
+            background-color: #2980b9; /* Darker blue on hover */
+        }
+
+        /* Styling for the captured image and buttons */
+        .image-container {
+            display: flex;
+            justify-content: center; /* Center the image and buttons horizontally */
+            align-items: center; /* Align items vertically */
+            margin-top: 20px; /* Add spacing above the image container */
+        }
+
+        .image-container img {
+            margin-right: 20px; /* Add spacing between the image and buttons */
+        }
+
+        .side-buttons {
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically */
+        }
+    </style>
+
+    <div class="camera-container">
+        <!-- Live Camera Feed -->
+        <video id="video" width="640" height="480" autoplay></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+
+        <!-- Buttons below the camera -->
+        <div class="button-container">
+            <button id="capture">Capture</button>
+        </div>
     </div>
-</div>
 
-<script>
-    const video = document.getElementById("webcam");
-    const canvas = document.getElementById("canvas");
-    const context = canvas.getContext("2d");
-    const captureBtn = document.getElementById("captureBtn");
-    const uploadBtn = document.getElementById("uploadBtn");
-    const previewContainer = document.getElementById("previewContainer");
-    const previewImage = document.getElementById("previewImage");
+    <!-- Captured Image Display with Buttons on the Side -->
+    <div class="image-container" style="display:none;" id="imageContainer">
+        <img id="capturedImage" style="width:640px; height:480px; border:2px solid black;"/>
+        <div class="side-buttons">
+            <button id="retry">Retry</button>
+            <button id="upload">Upload</button>
+        </div>
+    </div>
 
-    // Start webcam
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => video.srcObject = stream)
-        .catch(err => console.error("Error accessing webcam:", err));
+    <!-- Hidden Form to Store Image -->
+    <form id="capture-form">
+        {% csrf_token %}
+        <input type="hidden" name="image_data" id="image_data">
+    </form>
 
-    // Capture Image
-    captureBtn.addEventListener("click", () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    <!-- Results Display -->
+    <div id="results" style="display:none; margin-top:20px;">
+        <h2>Card Recognition Results:</h2>
+        <p id="text_result">Processing...</p>
+    </div>
 
-        previewContainer.style.display = "block";
-        previewImage.src = canvas.toDataURL("image/png");
-        uploadBtn.style.display = "inline-block";
-    });
+    <script>
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const context = canvas.getContext("2d");
+        const capturedImage = document.getElementById("capturedImage");
+        const captureButton = document.getElementById("capture");
+        const retryButton = document.getElementById("retry");
+        const uploadButton = document.getElementById("upload");
+        const imageContainer = document.getElementById("imageContainer");
+        const textResult = document.getElementById("text_result");
+        const resultsDiv = document.getElementById("results");
 
-    // Retrieve CSRF token from cookies
-    function getCSRFToken() {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-            document.cookie.split(";").forEach(cookie => {
-                let [name, value] = cookie.trim().split("=");
-                if (name === "csrftoken") {
-                    cookieValue = decodeURIComponent(value);
+        // Start camera feed
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => { video.srcObject = stream; })
+            .catch(err => { console.log("Camera error: " + err); });
+
+        // Capture Image
+        captureButton.addEventListener("click", function () {
+            // Draw video frame to canvas
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert image to Base64
+            let image_data = canvas.toDataURL("image/png");
+
+            // Show captured image and buttons, hide video feed
+            capturedImage.src = image_data;
+            imageContainer.style.display = "flex";
+            video.style.display = "none";
+            captureButton.style.display = "none";
+
+            // Send to backend via AJAX
+            sendImageToBackend(image_data);
+        });
+
+        // Retry button (reset UI)
+        retryButton.addEventListener("click", function () {
+            imageContainer.style.display = "none";
+            video.style.display = "block";
+            captureButton.style.display = "block";
+            resultsDiv.style.display = "none";
+        });
+
+        // Show the Upload button after OCR results are displayed
+        function sendImageToBackend(image_data) {
+            let formData = new FormData();
+            formData.append("image_data", image_data);
+
+            fetch("{% url 'webcam_capture' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": document.querySelector("input[name=csrfmiddlewaretoken]").value
                 }
+            })
+            .then(response => response.json())
+            .then(data => {
+                textResult.innerHTML = `Detected Text: ${data.text_result}`; // Update text result
+                if (data.card_price) {
+                    textResult.innerHTML += `<br>Card Price: ${data.card_price}`; // Display card price
+                }
+                resultsDiv.style.display = "block"; // Show results section
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                textResult.innerHTML = "Error processing image.";
+                resultsDiv.style.display = "block";
             });
         }
-        return cookieValue;
-    }
-
-    // Upload Image
-    uploadBtn.addEventListener("click", () => {
-        const imageData = canvas.toDataURL("image/png");
-
-        fetch("{% url 'upload_image' %}", {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": getCSRFToken(),
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ image: imageData }),
-        })
-            .then(response => response.json())
-            .then(data => alert(data.message))
-            .catch(error => console.error("Upload error:", error));
-    });
-</script>
+    </script>
+</div>
 {% endblock %}

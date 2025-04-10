@@ -15,6 +15,14 @@ from google.cloud import vision
 
 import pandas as pd
 
+import cv2
+import base64
+import os
+import uuid
+
+from django.conf import settings
+
+
 # Create your views here.
 
 @login_required(login_url='/login')
@@ -95,3 +103,65 @@ def detect_text(path):
             "{}\nFor more info on error messages, check: "
             "https://cloud.google.com/apis/design/errors".format(response.error.message)
         )
+
+
+@login_required(login_url='/login')
+def webcam_capture(request):
+    if request.method == "POST":
+        image_data = request.POST.get("image_data")
+        if not image_data:
+            return JsonResponse({"error": "No image data received"}, status=400)
+
+        # Decode Base64 image
+        format, imgstr = image_data.split(";base64,")
+        img_data = base64.b64decode(imgstr)
+        filename = f"card_{uuid.uuid4().hex}.png"
+        save_dir = os.path.join(settings.BASE_DIR, 'Main', 'static', 'captured_images')
+
+        # Ensure directory exists
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+        save_path = os.path.join(save_dir, filename)
+        with open(save_path, "wb") as f:
+            f.write(img_data)
+
+        # OCR (Google Cloud Vision)
+        credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        detected_text = "OCR skipped – no credentials found."
+        card_price = None
+
+        if credentials_path and os.path.exists(credentials_path):
+            client = vision.ImageAnnotatorClient()
+            image = vision.Image(content=img_data)
+            response = client.text_detection(image=image)
+            texts = response.text_annotations
+            detected_text = texts[0].description if texts else "No text detected"
+            print(f"OCR Detected Text: {detected_text}")  # Log the detected text
+
+            # Extract card number
+            import re
+            card_number_match = re.search(r'[A-Z]{2}\d{2}-\d{3}', detected_text)  # Match alphanumeric strings with hyphens
+            if card_number_match:
+                card_number = card_number_match.group().strip().upper()  # Normalize the card number
+                print(f"Extracted Card Number: {card_number}")  # Log the extracted card number
+
+                # Search the database for the card
+                cards = Card.objects.filter(extNumber=card_number)
+                if cards.exists():
+                    card_price = cards.first().marketPrice  # Use the first matching card's price
+                    print(f"Card Found: {cards.first().cleanName}, Price: {card_price}")  # Log the card details
+                else:
+                    card_price = "Card not found in the database."
+                    print("No matching card found in the database.")
+            else:
+                card_price = "No valid card number found in the scanned text."
+                print("No valid card number found in the scanned text.")
+
+        return JsonResponse({
+            "image_url": f"/static/captured_images/{filename}",
+            "text_result": detected_text,
+            "card_price": card_price
+        })
+
+    return render(request, 'Main/image_capture.html')
