@@ -115,24 +115,12 @@ def webcam_capture(request):
         # Decode Base64 image
         format, imgstr = image_data.split(";base64,")
         img_data = base64.b64decode(imgstr)
-        filename = f"card_{uuid.uuid4().hex}.png"
-        save_dir = os.path.join(settings.BASE_DIR, 'Main', 'static', 'captured_images')
 
-        # Ensure directory exists
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-
-        save_path = os.path.join(save_dir, filename)
-        with open(save_path, "wb") as f:
-            f.write(img_data)
-
-        # OCR (Google Cloud Vision)
-        credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-        detected_text = "OCR skipped – no credentials found."
-        card_price = None
-
-        if credentials_path and os.path.exists(credentials_path):
+        try:
+            # Initialize Google Cloud Vision client (relies on GOOGLE_APPLICATION_CREDENTIALS being set)
             client = vision.ImageAnnotatorClient()
+
+            # Perform text detection
             image = vision.Image(content=img_data)
             response = client.text_detection(image=image)
             texts = response.text_annotations
@@ -158,10 +146,13 @@ def webcam_capture(request):
                 card_price = "No valid card number found in the scanned text."
                 print("No valid card number found in the scanned text.")
 
+        except Exception as e:
+            print(f"Error initializing Google Vision API client: {e}")
+            return JsonResponse({"error": "Error initializing OCR. Check your Google Cloud setup."}, status=500)
+
         return JsonResponse({
-            "image_url": f"/static/captured_images/{filename}",
             "text_result": detected_text,
             "card_price": card_price
         })
 
-    return render(request, 'Main/image_capture.html')
+    return JsonResponse({"error": "Invalid request method"}, status=400)
