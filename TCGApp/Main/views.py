@@ -134,16 +134,20 @@ def webcam_capture(request):
                 card_number = card_number_match.group().strip().upper()  # Normalize the card number
                 print(f"Extracted Card Number: {card_number}")  # Log the extracted card number
 
-                # Search the database for the card
-                cards = Card.objects.filter(extNumber=card_number)
-                if cards.exists():
-                    card_price = cards.first().marketPrice  # Use the first matching card's price
-                    print(f"Card Found: {cards.first().cleanName}, Price: {card_price}")  # Log the card details
-                else:
-                    card_price = "Card not found in the database."
-                    print("No matching card found in the database.")
+                # Search the database for all cards with the matching card number
+                cards = Card.objects.filter(extNumber=card_number).distinct()  # Ensure unique results
+                matching_cards = []
+                for card in cards:
+                    # Avoid adding duplicates to the list
+                    if not any(c['name'] == card.cleanName for c in matching_cards):
+                        matching_cards.append({
+                            "name": card.cleanName,
+                            "price": card.marketPrice,
+                            "image_url": card.imageUrl
+                        })
+                print(f"Matching Cards: {matching_cards}")  # Log the matching cards
             else:
-                card_price = "No valid card number found in the scanned text."
+                matching_cards = []
                 print("No valid card number found in the scanned text.")
 
         except Exception as e:
@@ -152,7 +156,7 @@ def webcam_capture(request):
 
         return JsonResponse({
             "text_result": detected_text,
-            "card_price": card_price
+            "matching_cards": matching_cards  # Include all matching cards in the response
         })
 
     return JsonResponse({"error": "Invalid request method"}, status=400)

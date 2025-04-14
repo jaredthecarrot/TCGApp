@@ -14,6 +14,7 @@ class Card(models.Model):
     extNumber = models.CharField(("extNumber"), max_length=256)
     #extDescription = models.CharField(("extDescription"), max_length=1024)
 
+
     def __str__(self):
         return 'Name: ' + self.cleanName + ' - extNumber: ' + self.extNumber
 
