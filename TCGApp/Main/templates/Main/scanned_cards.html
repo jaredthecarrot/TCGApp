@@ -67,16 +67,18 @@
 
     <div class="scanned-cards-grid">
         {% for image in images %}
-            <div class="scanned-card">
-                <img src="{{ image.image.url }}" alt="Scanned Card">
-                <form action="{% url 'delete_image' image.id %}" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="delete-btn">Delete</button>
-                </form>
-            </div>
-        {% empty %}
-            <p>No scanned cards yet.</p>
-        {% endfor %}
+    <div class="scanned-card">
+        <img src="{{ image.image.url }}" alt="Scanned Card">
+        {% if image.matched_card %}
+            <p><strong>{{ image.matched_card.cleanName }}</strong></p>
+            <p>Market Price: ${{ image.matched_card.marketPrice }}</p>
+        {% else %}
+            <p><em>No card match found</em></p>
+        {% endif %}
+        <form action="{% url 'delete_image' image.id %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" class="delete-btn">Delete</button>
+        </form>
     </div>
-</div>
+{% endfor %}
 {% endblock %}

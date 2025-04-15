@@ -21,3 +21,4 @@ class Card(models.Model):
 class UploadedImage(models.Model):
     image = models.ImageField(upload_to="uploads/")
     created_at = models.DateTimeField(auto_now_add=True)
+    matched_card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True, blank=True)

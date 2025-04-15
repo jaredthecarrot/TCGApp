@@ -114,49 +114,58 @@ def webcam_capture(request):
 
         # Decode Base64 image
         format, imgstr = image_data.split(";base64,")
+        ext = format.split("/")[-1]
         img_data = base64.b64decode(imgstr)
+        image_name = f"{uuid.uuid4()}.{ext}"
+        image_file = ContentFile(img_data, name=image_name)
 
         try:
-            # Initialize Google Cloud Vision client (relies on GOOGLE_APPLICATION_CREDENTIALS being set)
             client = vision.ImageAnnotatorClient()
-
-            # Perform text detection
             image = vision.Image(content=img_data)
             response = client.text_detection(image=image)
             texts = response.text_annotations
             detected_text = texts[0].description if texts else "No text detected"
-            print(f"OCR Detected Text: {detected_text}")  # Log the detected text
 
             # Extract card number
             import re
-            card_number_match = re.search(r'[A-Z]{2}\d{2}-\d{3}', detected_text)  # Match alphanumeric strings with hyphens
-            if card_number_match:
-                card_number = card_number_match.group().strip().upper()  # Normalize the card number
-                print(f"Extracted Card Number: {card_number}")  # Log the extracted card number
+            card_number_match = re.search(r'[A-Z]{2}\d{2}-\d{3}', detected_text)
+            matched_card = None
+            matching_cards = []
 
-                # Search the database for all cards with the matching card number
-                cards = Card.objects.filter(extNumber=card_number).distinct()  # Ensure unique results
-                matching_cards = []
+            if card_number_match:
+                card_number = card_number_match.group().strip().upper()
+                cards = Card.objects.filter(extNumber=card_number)
+
                 for card in cards:
-                    # Avoid adding duplicates to the list
-                    if not any(c['name'] == card.cleanName for c in matching_cards):
-                        matching_cards.append({
-                            "name": card.cleanName,
-                            "price": card.marketPrice,
-                            "image_url": card.imageUrl
-                        })
-                print(f"Matching Cards: {matching_cards}")  # Log the matching cards
-            else:
-                matching_cards = []
-                print("No valid card number found in the scanned text.")
+                    matching_cards.append({
+                        "name": card.cleanName,
+                        "price": card.marketPrice,
+                        "image_url": card.imageUrl
+                    })
+
+                # Optionally, pick the first card to associate with image
+                if cards.exists():
+                    matched_card = cards.first()
+
+            # Save image and matched card to DB
+            uploaded_image = UploadedImage.objects.create(
+                image=image_file,
+                matched_card=matched_card
+            )
+
+            return JsonResponse({
+                "text_result": detected_text,
+                "matching_cards": matching_cards
+            })
 
         except Exception as e:
-            print(f"Error initializing Google Vision API client: {e}")
-            return JsonResponse({"error": "Error initializing OCR. Check your Google Cloud setup."}, status=500)
-
-        return JsonResponse({
-            "text_result": detected_text,
-            "matching_cards": matching_cards  # Include all matching cards in the response
-        })
+            print(f"OCR Error: {e}")
+            return JsonResponse({"error": "OCR failed"}, status=500)
 
     return JsonResponse({"error": "Invalid request method"}, status=400)
+
+@login_required(login_url='/login')
+def scanned_cards(request):
+    images = UploadedImage.objects.select_related('matched_card').all()
+    return render(request, 'Main/scanned_cards.html', {'images': images}
+    )
