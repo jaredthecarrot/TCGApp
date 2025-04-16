@@ -11,8 +11,6 @@ from .models import UploadedImage
 
 from django.shortcuts import get_object_or_404, redirect
 
-from google.cloud import vision
-
 import base64
 import uuid
 
@@ -114,6 +112,7 @@ def webcam_capture(request):
         image_file = ContentFile(img_data, name=image_name)
 
         try:
+            from google.cloud import vision
             client = vision.ImageAnnotatorClient()
             image = vision.Image(content=img_data)
             response = client.text_detection(image=image)

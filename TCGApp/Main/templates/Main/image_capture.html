@@ -120,9 +120,7 @@
                         cardImage.alt = card.cleanName;
 
                         const cardInfo = document.createElement("p");
-                        cardInfo.innerHTML = `<strong>${card.cleanName}</strong><br>Market Price: ${card.marketPrice}<br><a href="${card.url}" target="_blank" class="btn btn-primary btn-sm mt-2">
-                        View Card Details
-                    </a>`;
+                        cardInfo.innerHTML = `<strong>${card.cleanName}</strong><br>Foil Type: ${card.subTypeName}<br>Market Price: ${card.marketPrice}<br><a href="${card.url}" target="_blank" class="btn btn-primary btn-sm mt-2">View Card Details</a>`;
 
                         cardDiv.appendChild(cardImage);
                         cardDiv.appendChild(cardInfo);
