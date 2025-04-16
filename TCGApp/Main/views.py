@@ -13,11 +13,7 @@ from django.shortcuts import get_object_or_404, redirect
 
 from google.cloud import vision
 
-import pandas as pd
-
-import cv2
 import base64
-import os
 import uuid
 
 from django.conf import settings
@@ -33,11 +29,6 @@ def home(request):
 def catalog(request):
     cards = Card.objects.all()
     return render(request, 'Main/catalog.html', {'cards': cards})
-
-@login_required(login_url='/login')
-def scanned_cards(request):
-    images = UploadedImage.objects.all()  # Fetch all uploaded images from the database
-    return render(request, 'Main/scanned_cards.html', {'images': images})
 
 @login_required(login_url='/login')
 def delete_image(request, image_id):
@@ -58,6 +49,7 @@ def sign_up(request):
 
     return render(request, 'registration/sign_up.html', {"form": form})
 
+@login_required(login_url='/login')
 def image_capture(request):
     return render(request, 'Main/image_capture.html')
 
@@ -109,6 +101,8 @@ def detect_text(path):
 def webcam_capture(request):
     if request.method == "POST":
         image_data = request.POST.get("image_data")
+        should_save = request.POST.get("save", None)
+
         if not image_data:
             return JsonResponse({"error": "No image data received"}, status=400)
 
@@ -125,9 +119,8 @@ def webcam_capture(request):
             response = client.text_detection(image=image)
             texts = response.text_annotations
             detected_text = texts[0].description if texts else "No text detected"
-
-            # Extract card number
             import re
+            # Match card number (e.g., OP01-123)
             card_number_match = re.search(r'[A-Z]{2}\d{2}-\d{3}', detected_text)
             matched_card = None
             matching_cards = []
@@ -136,22 +129,35 @@ def webcam_capture(request):
                 card_number = card_number_match.group().strip().upper()
                 cards = Card.objects.filter(extNumber=card_number)
 
+                seen_subtypes = set()
                 for card in cards:
-                    matching_cards.append({
-                        "name": card.cleanName,
-                        "price": card.marketPrice,
-                        "image_url": card.imageUrl
-                    })
+                    # Avoid duplicates for Normal and Foil
+                    if card.subTypeName not in seen_subtypes:
+                        seen_subtypes.add(card.subTypeName)
+                        matching_cards.append({
+                            'productId': card.productId,
+                            'cleanName': card.cleanName,
+                            'imageUrl': card.imageUrl,
+                            'url': card.url,
+                            'lowPrice': card.lowPrice,
+                            'midPrice': card.midPrice,
+                            'highPrice': card.highPrice,
+                            'marketPrice': card.marketPrice,
+                            'subTypeName': card.subTypeName,
+                            'extNumber': card.extNumber,
+                            'extDescription': card.extDescription,
+                        })
 
-                # Optionally, pick the first card to associate with image
                 if cards.exists():
                     matched_card = cards.first()
 
-            # Save image and matched card to DB
-            uploaded_image = UploadedImage.objects.create(
-                image=image_file,
-                matched_card=matched_card
-            )
+            # Only save if 'save' is in POST
+            if should_save:
+                UploadedImage.objects.create(
+                    image=image_file,
+                    matched_card=matched_card,
+                    user=request.user
+                )
 
             return JsonResponse({
                 "text_result": detected_text,
@@ -166,6 +172,36 @@ def webcam_capture(request):
 
 @login_required(login_url='/login')
 def scanned_cards(request):
-    images = UploadedImage.objects.select_related('matched_card').all()
+    images = UploadedImage.objects.filter(user=request.user).select_related('matched_card')
     return render(request, 'Main/scanned_cards.html', {'images': images}
     )
+
+@login_required(login_url='/login')
+def save_scanned_card(request):
+    if request.method == "POST":
+        image_data = request.POST.get("image_data")
+        card_id = request.POST.get("card_id")
+
+        if not image_data or not card_id:
+            return JsonResponse({"error": "Missing data"}, status=400)
+
+        try:
+            # Decode and store image
+            format, imgstr = image_data.split(";base64,")
+            ext = format.split("/")[-1]
+            img_data = base64.b64decode(imgstr)
+            image_file = ContentFile(img_data, name=f"{uuid.uuid4()}.{ext}")
+
+            matched_card = get_object_or_404(Card, id=card_id)
+
+            UploadedImage.objects.create(
+                image=image_file,
+                matched_card=matched_card,
+                user=request.user  # make sure your model includes this
+            )
+
+            return JsonResponse({"message": "Card saved successfully."})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid method"}, status=405)

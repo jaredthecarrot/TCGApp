@@ -5,132 +5,32 @@
     <h1>Capture Your Card</h1>
     <p>Use your webcam to take a picture of your card.</p>
 
-    <style>
-        .container {
-            font-family: Arial, sans-serif;
-            color: #e0e0e0;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #3498db;
-            margin-bottom: 20px;
-        }
-
-        p {
-            font-size: 1.2rem;
-            color: #3498db;
-            margin-bottom: 15px;
-        }
-
-        #results {
-            font-size: 1.3rem;
-            color: #2c3e50;
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .camera-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        .button-container {
-            margin-top: 15px;
-        }
-
-        button {
-            font-size: 1.1rem;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
-
-        #capture {
-            background-color: #2ecc71;
-            color: white;
-        }
-
-        #capture:hover {
-            background-color: #27ae60;
-        }
-
-        #retry {
-            background-color: #e67e22;
-            color: white;
-        }
-
-        #retry:hover {
-            background-color: #d35400;
-        }
-
-        #upload {
-            background-color: #3498db;
-            color: white;
-        }
-
-        #upload:hover {
-            background-color: #2980b9;
-        }
-
-        .card-result {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .card-result img {
-            width: 150px;
-            margin-right: 15px;
-            border: 2px solid #3498db;
-            border-radius: 8px;
-        }
-
-        .card-result p {
-            margin: 0;
-            font-size: 1.1rem;
-        }
-    </style>
-
     <div class="camera-container">
-        <!-- Live Camera Feed -->
         <video id="video" width="640" height="480" autoplay></video>
         <canvas id="canvas" style="display:none;"></canvas>
 
-        <!-- Buttons below the camera -->
         <div class="button-container">
             <button id="capture">Capture</button>
         </div>
     </div>
 
-    <!-- Captured Image Display with Buttons on the Side -->
     <div class="image-container" style="display:none;" id="imageContainer">
-        <img id="capturedImage" style="width:640px; height:480px; border:2px solid black;"/>
+        <img id="capturedImage" style="width:640px; height:480px; border:2px solid black;" />
         <div class="side-buttons">
             <button id="retry">Retry</button>
             <button id="upload">Upload</button>
         </div>
     </div>
 
-    <!-- Hidden Form to Store Image -->
-    <form id="capture-form">
-        {% csrf_token %}
-        <input type="hidden" name="image_data" id="image_data">
-    </form>
-
-    <!-- Results Display -->
     <div id="results" style="display:none; margin-top:20px;">
         <h2>Card Recognition Results:</h2>
         <p id="text_result">Processing...</p>
         <div id="results-container"></div>
     </div>
+
+    <form id="capture-form">{% csrf_token %}
+        <input type="hidden" name="image_data" id="image_data">
+    </form>
 
     <script>
         const video = document.getElementById("video");
@@ -145,41 +45,55 @@
         const resultsDiv = document.getElementById("results");
         const resultsContainer = document.getElementById("results-container");
 
-        // Start camera feed
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => { video.srcObject = stream; })
             .catch(err => { console.log("Camera error: " + err); });
 
-        // Capture Image
-        captureButton.addEventListener("click", function () {
-            // Draw video frame to canvas
+        captureButton.addEventListener("click", () => {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Convert image to Base64
             let image_data = canvas.toDataURL("image/png");
-
-            // Show captured image and buttons, hide video feed
             capturedImage.src = image_data;
             imageContainer.style.display = "flex";
             video.style.display = "none";
             captureButton.style.display = "none";
 
-            // Send to backend via AJAX
-            sendImageToBackend(image_data);
+            document.getElementById("image_data").value = image_data;
+
+            sendImageToBackend(image_data);  // Run OCR but don’t save yet
         });
 
-        // Retry button (reset UI)
-        retryButton.addEventListener("click", function () {
+        retryButton.addEventListener("click", () => {
             imageContainer.style.display = "none";
             video.style.display = "block";
             captureButton.style.display = "block";
             resultsDiv.style.display = "none";
-            resultsContainer.innerHTML = ""; // Clear previous results
+            resultsContainer.innerHTML = "";
         });
 
-        // Show the Upload button after OCR results are displayed
+        uploadButton.addEventListener("click", () => {
+            let formData = new FormData();
+            formData.append("image_data", document.getElementById("image_data").value);
+            formData.append("save", "true");
+
+            fetch("{% url 'webcam_capture' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": document.querySelector("input[name=csrfmiddlewaretoken]").value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("Image saved successfully.");
+            })
+            .catch(error => {
+                console.error("Upload error:", error);
+            });
+        });
+
         function sendImageToBackend(image_data) {
             let formData = new FormData();
             formData.append("image_data", image_data);
@@ -193,23 +107,22 @@
             })
             .then(response => response.json())
             .then(data => {
-                textResult.innerHTML = `Detected Text: ${data.text_result}`; // Update text result
-
-                // Clear previous results
+                textResult.innerHTML = `Detected Text: ${data.text_result}`;
                 resultsContainer.innerHTML = "";
 
-                // Display all matching cards
                 if (data.matching_cards && data.matching_cards.length > 0) {
                     data.matching_cards.forEach(card => {
                         const cardDiv = document.createElement("div");
                         cardDiv.classList.add("card-result");
 
                         const cardImage = document.createElement("img");
-                        cardImage.src = card.image_url;
-                        cardImage.alt = card.name;
+                        cardImage.src = card.imageUrl;
+                        cardImage.alt = card.cleanName;
 
                         const cardInfo = document.createElement("p");
-                        cardInfo.innerHTML = `<strong>${card.name}</strong><br>Price: ${card.price}`;
+                        cardInfo.innerHTML = `<strong>${card.cleanName}</strong><br>Market Price: ${card.marketPrice}<br><a href="${card.url}" target="_blank" class="btn btn-primary btn-sm mt-2">
+                        View Card Details
+                    </a>`;
 
                         cardDiv.appendChild(cardImage);
                         cardDiv.appendChild(cardInfo);
@@ -219,7 +132,7 @@
                     resultsContainer.innerHTML = "No matching cards found.";
                 }
 
-                resultsDiv.style.display = "block"; // Show results section
+                resultsDiv.style.display = "block";
             })
             .catch(error => {
                 console.error("Error:", error);
