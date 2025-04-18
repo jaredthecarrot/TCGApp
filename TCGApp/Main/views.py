@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import RegisterForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
@@ -108,81 +108,78 @@ def detect_text(path):
 def webcam_capture(request):
     if request.method == "POST":
         image_data = request.POST.get("image_data")
-        should_save = request.POST.get("save", None)
+        save_flag  = request.POST.get("save")      # will be "true" when uploading
+        chosen_id  = request.POST.get("card_id")   # the user’s selection
 
         if not image_data:
             return JsonResponse({"error": "No image data received"}, status=400)
 
-        # Decode Base64 image
-        format, imgstr = image_data.split(";base64,")
-        ext = format.split("/")[-1]
+        # decode the image
+        fmt, imgstr = image_data.split(";base64,")
+        ext = fmt.split("/")[-1]
         img_data = base64.b64decode(imgstr)
-        image_name = f"{uuid.uuid4()}.{ext}"
-        image_file = ContentFile(img_data, name=image_name)
+        image_file = ContentFile(img_data, name=f"{uuid.uuid4()}.{ext}")
 
         try:
+            # OCR
             from google.cloud import vision
             client = vision.ImageAnnotatorClient()
-            image = vision.Image(content=img_data)
-            response = client.text_detection(image=image)
-            texts = response.text_annotations
-            detected_text = texts[0].description if texts else "No text detected"
+            vision_image = vision.Image(content=img_data)
+            resp = client.text_detection(image=vision_image)
+            texts = resp.text_annotations
+            detected = texts[0].description if texts else "No text detected"
+
+            # find extNumber (allow optional single‐letter suffix)
             import re
-            # Match card number (e.g., OP01-123)
-            card_number_match = re.search(r'[A-Z]{2}\d{2}-\d{3}', detected_text)
-            matched_card = None
-            matching_cards = []
+            m = re.search(r'[A-Z]{2}\d{2}-\d{3}[A-Z]?', detected)
+            variants = []
+            if m:
+                num = m.group().upper()
+                # grab every card whose extNumber exactly matches
+                cards = Card.objects.filter(extNumber=num)
 
-            if card_number_match:
-                card_number = card_number_match.group().strip().upper()
-                cards = Card.objects.filter(extNumber=card_number)
-
-                seen_subtypes = set()
-                for card in cards:
-                    # Avoid duplicates for Normal and Foil
-                    if card.subTypeName not in seen_subtypes:
-                        seen_subtypes.add(card.subTypeName)
-                        matching_cards.append({
-                            'productId': card.productId,
-                            'cleanName': card.cleanName,
-                            'imageUrl': card.imageUrl,
-                            'url': card.url,
-                            'lowPrice': card.lowPrice,
-                            'midPrice': card.midPrice,
-                            'highPrice': card.highPrice,
-                            'marketPrice': card.marketPrice,
-                            'subTypeName': card.subTypeName,
-                            'extNumber': card.extNumber,
-                            'extDescription': card.extDescription,
-                        })
-
-                if cards.exists():
-                    matched_card = cards.first()
-
-            # Only save if 'save' is in POST
-            if should_save:
+                # Append every match—no more deduping by subtype
+                for c in cards:
+                    variants.append({
+                        "id":           c.id,
+                        "cleanName":    c.cleanName,
+                        "subTypeName":  c.subTypeName,
+                        "imageUrl":     c.imageUrl,
+                        "marketPrice":  c.marketPrice,
+                        "url":          c.url,
+                    })
+            # if this request is the “upload” pass, perform the save
+            if save_flag == "true" and chosen_id:
+                card_obj = get_object_or_404(Card, pk=chosen_id)
                 UploadedImage.objects.create(
+                    user=request.user,
                     image=image_file,
-                    matched_card=matched_card,
-                    user=request.user
+                    matched_card=card_obj
                 )
+                return JsonResponse({"success": True})
 
+            # otherwise just return OCR + variants
             return JsonResponse({
-                "text_result": detected_text,
-                "matching_cards": matching_cards
+                "text_result":     detected,
+                "matching_cards":  variants
             })
 
         except Exception as e:
-            print(f"OCR Error: {e}")
+            print("OCR Error:", e)
             return JsonResponse({"error": "OCR failed"}, status=500)
 
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
 @login_required(login_url='/login')
 def scanned_cards(request):
-    images = UploadedImage.objects.filter(user=request.user).select_related('matched_card')
-    return render(request, 'Main/scanned_cards.html', {'images': images}
-    )
+    q = request.GET.get('q', '').strip()
+    qs = UploadedImage.objects.filter(user=request.user).select_related('matched_card')
+    if q:
+        qs = qs.filter(matched_card__cleanName__icontains=q)
+    return render(request, 'Main/scanned_cards.html', {
+        'images': qs,
+        'q': q,
+    })
 
 @login_required(login_url='/login')
 def save_scanned_card(request):
