@@ -4,7 +4,12 @@
 <div class="container mt-4">
     <h1 class="text-center">One Piece Catalog</h1>
     <p class="text-center">Where you can view all One Piece cards, owned or not.</p>
-
+    <form method="GET" action="{% url 'catalog' %}" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search cards by name..." value="{{ request.GET.q }}">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for item in cards %}
         <div class="col">

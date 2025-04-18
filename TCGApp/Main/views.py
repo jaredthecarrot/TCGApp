@@ -3,6 +3,7 @@ from .forms import RegisterForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User, Group
+from django.db.models import Q
 from django.http import JsonResponse
 from .models import Card
 import base64
@@ -25,7 +26,15 @@ def home(request):
 
 @login_required(login_url='/login')
 def catalog(request):
-    cards = Card.objects.all()
+    query = request.GET.get('q', '')
+    if query:
+        cards = Card.objects.filter(
+            Q(cleanName__icontains=query) |
+            Q(extNumber__icontains=query) |
+            Q(subTypeName__icontains=query)
+        )
+    else:
+        cards = Card.objects.all()
     return render(request, 'Main/catalog.html', {'cards': cards})
 
 @login_required(login_url='/login')

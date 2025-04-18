@@ -6,19 +6,21 @@
     <p>Use your webcam to take a picture of your card.</p>
 
     <div class="camera-container">
-        <video id="video" width="640" height="480" autoplay></video>
+        <div class="d-flex justify-content-center">
+            <video id="video" width="640" height="480" autoplay></video>
+        </div>    
         <canvas id="canvas" style="display:none;"></canvas>
 
-        <div class="button-container">
-            <button id="capture">Capture</button>
-        </div>
+        <div class="button-container d-flex justify-content-center">
+            <button id="capture" type="button" class="btn btn-primary">Capture</button>
+        </div>        
     </div>
 
     <div class="image-container" style="display:none;" id="imageContainer">
         <img id="capturedImage" style="width:640px; height:480px; border:2px solid black;" />
         <div class="side-buttons">
-            <button id="retry">Retry</button>
-            <button id="upload">Upload</button>
+            <button id="retry" type="button" class="btn btn-primary">Retry</button>
+            <button id="upload" type="button" class="btn btn-primary">Upload</button>
         </div>
     </div>
 

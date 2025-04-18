@@ -3,10 +3,29 @@
 {% block title %}Home Page{% endblock %}
 
 {% block content %}
-<h1>Welcome to the TCGApp Website</h1>
-<p>Are you tired of constantly having to look up cards, scrolling through TCGPlayer for your exact card?</p>
-<p>Wouldn't you rather take some quick pictures, and we do all the work for you?</p>
-<p>With this website, that's possible! Just snap those photos, and we'll do all the legwork for you!</p>
-<p>You can even store your scanned cards into your own personal repository!</p>
-<p>Or, view the entire One Piece <a href="{% url 'catalog' %}">catalog</a> with links to TCGPlayer and access to valuable trading card information.</p>
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h1 class="display-4 fw-bold text-primary">Welcome to TCGApp</h1>
+        <p class="lead">Scan. Identify. Track. Master your One Piece trading cards effortlessly.</p>
+    </div>
+
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <p class="mb-3">Are you tired of scrolling endlessly through TCGPlayer trying to find your exact card?</p>
+                    <p class="mb-3">Wouldn't it be easier to just take a picture and let us do the rest?</p>
+                    <p class="mb-3">With <strong>TCGApp</strong>, you can snap photos of your cards and let our OCR + card detection engine match and retrieve detailed card data instantly.</p>
+                    <p class="mb-3">You can even store your scanned cards in your personal collection for easy access!</p>
+                    <p class="mb-1">Explore the full One Piece <a href="{% url 'catalog' %}" class="text-decoration-none fw-bold">catalog</a> complete with price information and links to official listings.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="{% url 'image_capture' %}" class="btn btn-success btn-lg me-3">Start Scanning</a>
+        <a href="{% url 'scanned_cards' %}" class="btn btn-outline-primary btn-lg">View My Scanned Cards</a>
+    </div>
+</div>
 {% endblock %}
