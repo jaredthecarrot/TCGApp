@@ -1,4 +1,4 @@
-django>=3.2.14
+django==5.2
 python-dotenv
 requests
 django-crispy-forms
