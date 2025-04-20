@@ -17,6 +17,11 @@ import uuid
 
 from django.conf import settings
 
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from datetime import datetime, timedelta
+from .models import Card
+
 
 # Create your views here.
 
@@ -176,8 +181,26 @@ def scanned_cards(request):
     qs = UploadedImage.objects.filter(user=request.user).select_related('matched_card')
     if q:
         qs = qs.filter(matched_card__cleanName__icontains=q)
+
+    images_with_predictions = []
+    for image in qs:
+        matched_card = image.matched_card
+        if matched_card:
+            # Calculate predicted price dynamically
+            prices = [matched_card.lowPrice, matched_card.midPrice, matched_card.highPrice, matched_card.marketPrice]
+            predicted_price = round(sum(prices) / len(prices), 2)  # Round to 2 decimal places
+            images_with_predictions.append({
+                'image': image,
+                'predictions': predicted_price
+            })
+        else:
+            images_with_predictions.append({
+                'image': image,
+                'predictions': None
+            })
+
     return render(request, 'Main/scanned_cards.html', {
-        'images': qs,
+        'images_with_predictions': images_with_predictions,
         'q': q,
     })
 

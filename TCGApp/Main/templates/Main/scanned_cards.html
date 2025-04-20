@@ -1,3 +1,4 @@
+<!-- filepath: /Users/marlonchavez/Desktop/Project new changes by Jared/TCGApp/Main/templates/Main/scanned_cards.html -->
 {% extends 'Main/base.html' %}
 {% block title %}Scanned Cards{% endblock %}
 {% block content %}
@@ -10,9 +11,9 @@
             <button type="submit" class="btn btn-primary">Search</button>
         </div>
     </form>
-    {% if images %}
+    {% if images_with_predictions %}
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-2 g-4">
-        {% for image in images %}
+        {% for item in images_with_predictions %}
         <div class="col">
             <div class="card shadow-sm h-100">
                 <style>
@@ -36,32 +37,32 @@
                 <div class="row g-0">
                     <div class="col-md-6 image-wrapper">
                         <div class="text-center">
-                            <img src="{{ image.matched_card.imageUrl }}" class="card-image" alt="Sample Image">
+                            <img src="{{ item.image.matched_card.imageUrl }}" class="card-image" alt="Sample Image">
                             <p class="mt-2 mb-0 small text-muted">Sample Image</p>
                         </div>
                     </div>
                     <div class="col-md-6 image-wrapper">
                         <div class="text-center">
-                            <img src="{{ image.image.url }}" class="card-image" alt="Scanned Image">
+                            <img src="{{ item.image.image.url }}" class="card-image" alt="Scanned Image">
                             <p class="mt-2 mb-0 small text-muted">Your Scan</p>
                         </div>
                     </div>
                 </div>
                               
                 <div class="card-body">
-                    {% if image.matched_card %}
-                        <h5 class="card-title">{{ image.matched_card.cleanName }}</h5>
-                        <p class="mb-1"><strong>Low Price:</strong> ${{ image.matched_card.lowPrice }}</p>
-                        <p class="mb-1"><strong>High Price:</strong> ${{ image.matched_card.highPrice }}</p>
-                        <p class="mb-1"><strong>Market Price:</strong> ${{ image.matched_card.marketPrice }}</p>
-                        <a href="{{ image.matched_card.url }}" target="_blank" class="btn btn-primary btn-sm mt-2">
+                    {% if item.image.matched_card %}
+                        <h5 class="card-title">{{ item.image.matched_card.cleanName }}</h5>
+                        <p class="mb-1"><strong>Low Price:</strong> ${{ item.image.matched_card.lowPrice }}</p>
+                        <p class="mb-1"><strong>High Price:</strong> ${{ item.image.matched_card.highPrice }}</p>
+                        <p class="mb-1"><strong>Market Price:</strong> ${{ item.image.matched_card.marketPrice }}</p>
+                        <p class="mb-1"><strong>1 Week Predicted Price:</strong> ${{ item.predictions }}</p>                        <a href="{{ item.image.matched_card.url }}" target="_blank" class="btn btn-primary btn-sm mt-2">
                             View Card Details
                         </a>
                     {% else %}
                         <p class="text-muted"><em>No card match found.</em></p>
                     {% endif %}
 
-                    <form action="{% url 'delete_image' image.id %}" method="POST" class="mt-3">
+                    <form action="{% url 'delete_image' item.image.id %}" method="POST" class="mt-3">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
