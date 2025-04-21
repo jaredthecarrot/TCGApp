@@ -1,31 +1,102 @@
 ﻿{% extends 'Main/base.html' %}
-
-{% block title %}Home Page{% endblock %}
+{% load static %}
+{% block title %}Home | TCGApp{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="text-center mb-4">
-        <h1 class="display-4 fw-bold text-primary">Welcome to TCGApp</h1>
-        <p class="lead">Scan. Identify. Track. Master your One Piece trading cards effortlessly.</p>
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">Welcome to <span class="text-dark">TCGApp</span></h1>
+        <p class="lead">Scan. Identify. Track. <br> Manage your One Piece cards like a pro.</p>
+        <a href="{% url 'image_capture' %}" class="btn btn-success btn-lg mt-3 shadow-sm">📸 Start Scanning</a>
     </div>
 
-    <div class="row justify-content-center mb-5">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0">
+    <!-- Use Case Cards -->
+    <div class="row justify-content-center g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center">
+                <img src="{% static 'images/collector.png' %}" class="square-img mt-3 mx-auto" alt="Collector Icon">
                 <div class="card-body">
-                    <p class="mb-3">Are you tired of scrolling endlessly through TCGPlayer trying to find your exact card?</p>
-                    <p class="mb-3">Wouldn't it be easier to just take a picture and let us do the rest?</p>
-                    <p class="mb-3">With <strong>TCGApp</strong>, you can snap photos of your cards and let our OCR + card detection engine match and retrieve detailed card data instantly.</p>
-                    <p class="mb-3">You can even store your scanned cards in your personal collection for easy access!</p>
-                    <p class="mb-1">Explore the full One Piece <a href="{% url 'catalog' %}" class="text-decoration-none fw-bold">catalog</a> complete with price information and links to official listings.</p>
+                    <h5 class="card-title mt-3">Collectors</h5>
+                    <p class="card-text">Maintain a digital inventory of your scanned cards with price tracking. Know what you own and its value — anytime, anywhere.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center">
+                <img src="{% static 'images/shopkeeper.jpg' %}" class="square-img mt-3 mx-auto" alt="Shopkeeper Icon">
+                <div class="card-body">
+                    <h5 class="card-title mt-3">Shopkeepers</h5>
+                    <p class="card-text">Quickly identify cards brought in by customers using our webcam scanner. Save time, reduce human error, and manage sales more effectively.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center">
+                <img src="{% static 'images/enthusiast.jpg' %}" class="square-img mt-3 mx-auto" alt="Tech Enthusiast Icon">
+                <div class="card-body">
+                    <h5 class="card-title mt-3">Tech Enthusiasts</h5>
+                    <p class="card-text">Experience an OCR-powered, price-informed trading card app that combines real-time data and AI into a seamless user experience.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="text-center">
-        <a href="{% url 'image_capture' %}" class="btn btn-success btn-lg me-3">Start Scanning</a>
-        <a href="{% url 'scanned_cards' %}" class="btn btn-outline-primary btn-lg">View My Scanned Cards</a>
+    <!-- How It Works -->
+    <div class="mb-5">
+        <h2 class="text-center fw-bold mb-4">How It Works</h2>
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <img src="{% static 'images/capture.jpg' %}" class="square-img mt-3 mx-auto" alt="Capture">
+                    <div class="card-body">
+                        <h5 class="card-title mt-3">1. Capture</h5>
+                        <p class="card-text">Use your webcam to capture a card image.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <img src="{% static 'images/identify.jpg' %}" class="square-img mt-3 mx-auto" alt="Identify">
+                    <div class="card-body">
+                        <h5 class="card-title mt-3">2. Identify</h5>
+                        <p class="card-text">We extract the card's label and match it against our database with real-time prices.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <img src="{% static 'images/store.jpg' %}" class="square-img mt-3 mx-auto" alt="Store">
+                    <div class="card-body">
+                        <h5 class="card-title mt-3">3. Track</h5>
+                        <p class="card-text">Save the result to your personal repository and track value over time.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Buttons -->
+    <div class="text-center mt-4">
+        <a href="{% url 'catalog' %}" class="btn btn-outline-dark btn-lg me-3">
+            📚 Browse Catalog
+        </a>
+        <a href="{% url 'image_capture' %}" class="btn btn-outline-success btn-lg me-3">
+            🚀 Start Scanning
+        </a>
+        <a href="{% url 'scanned_cards' %}" class="btn btn-outline-primary btn-lg">
+            📁 View My Scanned Cards
+        </a>
     </div>
 </div>
+
+<!-- Styling -->
+<style>
+    .square-img {
+        width: 140px;
+        height: 140px;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+</style>
 {% endblock %}

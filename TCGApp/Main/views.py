@@ -25,7 +25,6 @@ from .models import Card
 
 # Create your views here.
 
-@login_required(login_url='/login')
 def home(request):
     return render(request, 'Main/home.html')
 
