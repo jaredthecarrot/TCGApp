@@ -1,3 +1,5 @@
+# Form data and form fields created by Jared McCain
+
 from django import forms
 from .models import Card
 from django.contrib.auth.forms import UserCreationForm

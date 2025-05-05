@@ -1,3 +1,6 @@
+# Implementation borrowed from open-source license provided by Nigma Software
+# URL is https://www.youtube.com/watch?v=7wyvV5R_M5I&t=20s
+
 import csv
 from django.core.management.base import BaseCommand
 from Main.forms import CardForm

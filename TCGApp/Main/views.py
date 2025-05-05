@@ -1,3 +1,5 @@
+# Home, catalog, delete_image, sign_up, image_capture, upload_image, save_scanned_card, and detect_text functions created by Jared McCain
+# Webcam_capture and scanned_cards functions created by Marlon Chavez alongside price prediction logic and algorithm(s)
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import RegisterForm
 from django.contrib.auth.decorators import login_required

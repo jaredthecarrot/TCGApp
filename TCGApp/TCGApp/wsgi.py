@@ -1,3 +1,5 @@
+# WSGI file provided by Django and no revisions made
+
 """
 WSGI config for TCGApp project.
 

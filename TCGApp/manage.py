@@ -1,3 +1,4 @@
+# Manage file provided by Django and no revisions were made
 #!/usr/bin/env python
 """
 Command-line utility for administrative tasks.
